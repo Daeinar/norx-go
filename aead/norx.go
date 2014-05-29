@@ -51,15 +51,16 @@ func H(x,y uint64) uint64 {
 
 
 func G(a,b,c,d uint64) (uint64,uint64,uint64,uint64) {
-   a = H(a,b)
-   d = ROTR(a ^ d, R0)
-   c = H(c,d)
-   b = ROTR(b ^ c, R1)
-   a = H(a,b)
-   d = ROTR(a ^ d, R2)
-   c = H(c,d)
-   b = ROTR(b ^ c, R3)
-   return a,b,c,d
+
+    a = H(a,b)
+    d = ROTR(a ^ d, R0)
+    c = H(c,d)
+    b = ROTR(b ^ c, R1)
+    a = H(a,b)
+    d = ROTR(a ^ d, R2)
+    c = H(c,d)
+    b = ROTR(b ^ c, R3)
+    return a,b,c,d
 }
 
 
@@ -112,19 +113,19 @@ func setup(state *state_t, k []uint8, n []uint8) {
 }
 
 
-func process_header( state *state_t, in []uint8, inlen uint64 ) {
+func process_header(state *state_t, in []uint8, inlen uint64) {
 
     if inlen > 0 {
         lastblock := make([]uint8, BYTES64(RATE))
         i := uint64(0)
         n := BYTES64(RATE)
         for inlen >= n {
-            absorb_block( state, in[ n*i:n*(i+1) ], HEADER_TAG )
+            absorb_block( state, in[n*i:n*(i+1)], HEADER_TAG )
             inlen -= n
             i++
         }
         pad(lastblock[:], in[n*i:], inlen)
-        absorb_block( state, lastblock, HEADER_TAG )
+        absorb_block(state, lastblock[:], HEADER_TAG)
         BURN8(lastblock[:], BYTES64(RATE))
     }
 }
@@ -194,7 +195,7 @@ func output_tag(state *state_t, tag []uint8) {
     for i:= uint64(0); i < WORDS64(RATE); i++ {
         STORE64(lastblock[b*i:b*(i+1)], s[i])
     }
-    copy(tag, lastblock)
+    copy(tag[:], lastblock[:])
     BURN8(lastblock[:], BYTES64(RATE))
 }
 
@@ -211,7 +212,7 @@ func verify_tag(tag1 []uint8, tag2 []uint8) int {
 
 func pad(out []uint8, in []uint8, inlen uint64) {
 
-    copy(out,in[:inlen])
+    copy(out[:],in[:inlen])
     out[inlen] = 0x01
     out[BYTES64(RATE) - 1] |= 0x80
 }
@@ -259,7 +260,7 @@ func decrypt_block(state *state_t, out []uint8, in []uint8) {
     b := BYTES64(NORX_W)
     for i:= uint64(0); i < WORDS64(RATE); i++ {
         c := LOAD64(in[b*i:b*(i+1)])
-        STORE64(out[ b*i:b*(i+1) ], s[i] ^ c)
+        STORE64(out[b*i:b*(i+1)], s[i] ^ c)
         s[i] = c
     }
 }

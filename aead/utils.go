@@ -11,12 +11,14 @@
 package aead
 
 func BYTES64(x uint64) uint64 {
-  return uint64((x + 7) / 8)
+    return uint64((x + 7) / 8)
 }
 
+
 func WORDS64(x uint64) uint64 {
-  return uint64((x + 63) / 64)
+    return uint64((x + 63) / 64)
 }
+
 
 func LOAD64(x []uint8) uint64 {
     return (uint64(x[0]) <<  0) |
@@ -29,6 +31,7 @@ func LOAD64(x []uint8) uint64 {
            (uint64(x[7]) << 56)
 }
 
+
 func STORE64(out []uint8, v uint64) {
     out[0] = uint8(v >>  0);
     out[1] = uint8(v >>  8);
@@ -40,15 +43,17 @@ func STORE64(out []uint8, v uint64) {
     out[7] = uint8(v >> 56);
 }
 
+
 func BURN8(x []uint8, xlen uint64) {
-  for i:= uint64(0); i < xlen; i++ {
-      x[i] = 0
-  }
+    for i:= uint64(0); i < xlen; i++ {
+        x[i] = 0
+    }
 }
 
+
 func BURN64(x []uint64, xlen uint64) {
-  for i:= uint64(0); i < xlen; i++ {
-      x[i] = 0
-  }
+    for i:= uint64(0); i < xlen; i++ {
+        x[i] = 0
+    }
 }
 

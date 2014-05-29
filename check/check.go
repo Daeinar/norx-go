@@ -117,10 +117,11 @@ func Check() int {
 
 
 func cmp(a []uint8, b []uint8, len uint64) int {
-  for i := uint64(0); i < len; i++ {
-    if a[i] != b[i] {
-      return -1
+
+    for i := uint64(0); i < len; i++ {
+        if a[i] != b[i] {
+          return -1
+        }
     }
-  }
-  return 0
+    return 0
 }

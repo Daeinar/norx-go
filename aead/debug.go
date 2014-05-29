@@ -8,7 +8,6 @@
     :license: BSD (3-Clause), see LICENSE
 */
 
-
 package aead
 
 import "fmt"
@@ -20,6 +19,7 @@ func Print_state(s []uint64) {
     fmt.Printf("%016X %016X %016X %016X\n", s[12], s[13], s[14], s[15])
     fmt.Printf("\n")
 }
+
 
 func Print_bytes(in []uint8, inlen uint64) {
     for i := uint64(0); i<inlen; i++ {

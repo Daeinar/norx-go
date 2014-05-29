@@ -2,7 +2,7 @@
     utils.go
     ------
 
-    This file is part of the NORX Go reference implementation.
+    This file is part of the Go reference implementation of NORX.
 
     :copyright: (c) 2014 Philipp Jovanovic <philipp@jovanovic.io>
     :license: BSD (3-Clause), see LICENSE

@@ -1,10 +1,9 @@
-### Go Reference Implementation of NORX
+### Go Implementation of NORX
 
-Go implementation of [NORX](https://norx.io), a parallel and scalable authenticated encryption algorithm.
+[NORX](https://norx.io) is a parallel and scalable authenticated encryption algorithm and was designed by [Jean-Philippe Aumasson](https://aumasson.jp), [Philipp Jovanovic](http://cryptomaths.com) and [Samuel Neves](http://eden.dei.uc.pt/~sneves/).
 
-Currently only NORX64 in sequential mode is supported.
+This implementation currently supports only NORX64 in sequential mode.
 
-NORX was designed by [Jean-Philippe Aumasson](https://aumasson.jp), [Philipp Jovanovic](http://cryptomaths.com) and [Samuel Neves](http://eden.dei.uc.pt/~sneves/).
 
 
 ####Installation

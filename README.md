@@ -2,7 +2,7 @@
 
 [NORX](https://norx.io) is a parallel and scalable authenticated encryption algorithm and was designed by:
 
-  * [Jean-Philippe Aumasson](https://aumasson.jp)
+  * [Jean-Philippe Aumasson](http://aumasson.jp)
   * [Philipp Jovanovic](http://cryptomaths.com)
   * [Samuel Neves](http://eden.dei.uc.pt/~sneves/)
 

@@ -116,17 +116,14 @@ func setup(state *state_t, k []uint8, n []uint8) {
 func process_header(state *state_t, in []uint8, inlen uint64) {
 
     if inlen > 0 {
-        lastblock := make([]uint8, BYTES64(RATE))
         i := uint64(0)
         n := BYTES64(RATE)
         for inlen >= n {
-            absorb_block( state, in[n*i:n*(i+1)], HEADER_TAG )
+            absorb_block(state, in[n*i:n*(i+1)], HEADER_TAG)
             inlen -= n
             i++
         }
-        pad(lastblock[:], in[n*i:], inlen)
-        absorb_block(state, lastblock[:], HEADER_TAG)
-        BURN8(lastblock[:], BYTES64(RATE))
+        absorb_lastblock(state, in[n*i:n*i+inlen], inlen, HEADER_TAG)
     }
 }
 
@@ -134,7 +131,6 @@ func process_header(state *state_t, in []uint8, inlen uint64) {
 func encrypt_msg(state *state_t, out []uint8, in []uint8, inlen uint64) {
 
     if inlen > 0 {
-        lastblock := make([]uint8, BYTES64(RATE))
         n := BYTES64(RATE)
         i := uint64(0)
         for inlen >= n {
@@ -142,10 +138,7 @@ func encrypt_msg(state *state_t, out []uint8, in []uint8, inlen uint64) {
             inlen -= n
             i++
         }
-        pad(lastblock[:], in[n*i:], inlen)
-        encrypt_block(state, lastblock[:], lastblock[:])
-        copy(out[n*i:n*i+inlen], lastblock[:])
-        BURN8(lastblock[:], BYTES64(RATE))
+        encrypt_lastblock(state, out[n*i:n*i+inlen], in[n*i:n*i+inlen], inlen)
     }
 }
 
@@ -168,7 +161,6 @@ func decrypt_msg(state *state_t, out []uint8, in []uint8, inlen uint64) {
 func process_trailer(state *state_t, in []uint8, inlen uint64) {
 
     if inlen > 0 {
-        lastblock := make([]uint8, BYTES64(RATE))
         i := uint64(0)
         n := BYTES64(RATE)
         for inlen >= n {
@@ -176,9 +168,7 @@ func process_trailer(state *state_t, in []uint8, inlen uint64) {
             inlen -= n
             i++
         }
-        pad(lastblock[:], in[n*i:], inlen)
-        absorb_block(state, lastblock[:], HEADER_TAG)
-        BURN8(lastblock[:], BYTES64(RATE))
+        absorb_lastblock(state, in[n*i:n*i+inlen], inlen, TRAILER_TAG)
     }
 }
 
@@ -237,6 +227,15 @@ func absorb_block(state *state_t, in []uint8, tag uint64) {
 }
 
 
+func absorb_lastblock(state *state_t, in []uint8, inlen uint64, tag uint64) {
+
+    lastblock := make([]uint8, BYTES64(RATE))
+    pad(lastblock[:], in[:], inlen)
+    absorb_block(state, lastblock[:], tag)
+    BURN8(lastblock[:], BYTES64(RATE))
+}
+
+
 func encrypt_block(state *state_t, out []uint8, in []uint8) {
 
     inject_tag(state, PAYLOAD_TAG)
@@ -248,6 +247,16 @@ func encrypt_block(state *state_t, out []uint8, in []uint8) {
         s[i] ^= LOAD64(in[b*i:b*(i+1)])
         STORE64(out[b*i:b*(i+1)], s[i])
     }
+}
+
+
+func encrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
+
+    lastblock := make([]uint8, BYTES64(RATE))
+    pad(lastblock[:], in[:], inlen)
+    encrypt_block(state, lastblock[:], lastblock[:])
+    copy(out[:], lastblock[:])
+    BURN8(lastblock[:], BYTES64(RATE))
 }
 
 

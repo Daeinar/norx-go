@@ -65,6 +65,7 @@ func G(a,b,c,d uint64) (uint64,uint64,uint64,uint64) {
 
 
 func F(s []uint64) {
+
     // Column step
     s[ 0], s[ 4], s[ 8], s[12] = G(s[ 0], s[ 4], s[ 8], s[12])
     s[ 1], s[ 5], s[ 9], s[13] = G(s[ 1], s[ 5], s[ 9], s[13])
@@ -79,6 +80,7 @@ func F(s []uint64) {
 
 
 func permute(state *state_t) {
+
     s := state.s[:]
     for i:=0; i<NORX_R; i++ { F(s) }
 }
@@ -209,6 +211,7 @@ func pad(out []uint8, in []uint8, inlen uint64) {
 
 
 func inject_tag(state *state_t, tag uint64) {
+
     s := state.s[:]
     s[15] ^= tag
 }
@@ -283,7 +286,6 @@ func decrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
     s := state.s[:]
     i := uint64(0)
     n := BYTES64(NORX_W)
-    b := make([]uint8, n)
 
     /* undo padding */
     s[inlen / n] ^= uint64(0x01) << (inlen % n * 8)
@@ -297,13 +299,13 @@ func decrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
         i++
     }
 
-    STORE64(b,s[i])
-    for j := uint64(0); j < inlen; j++ {
-      c := in[n*i+j]
-      out[n*i+j] = b[j] ^ c
-      b[j] = c
-    }
-    s[i] = LOAD64(b)
+    /* decrypt last bytes */
+    b := make([]uint8, n)
+    copy(b,in[n*i:n*i+inlen])
+    x := LOAD64(b)
+    STORE64(b, s[i] ^ x)
+    copy(out[n*i:n*i+inlen],b)
+    s[i] = x
     BURN8(b,n)
 }
 
@@ -321,7 +323,7 @@ func AEAD_encrypt(
     process_header(state, h, hlen)
     encrypt_msg(state, c, m, mlen)
     process_trailer(state, t, tlen)
-    output_tag(state, c[ mlen: ])
+    output_tag(state, c[mlen:])
     *clen = mlen + BYTES64(NORX_A)
     BURN64(state.s[:], WORDS64(NORX_B))
 }

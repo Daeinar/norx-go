@@ -284,31 +284,24 @@ func decrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
     permute(state)
 
     s := state.s[:]
-    i := uint64(0)
     n := BYTES64(NORX_W)
+    lastblock := make([]uint8, BYTES64(RATE))
 
-    /* undo padding */
-    s[inlen / n] ^= uint64(0x01) << (inlen % n * 8)
-    s[WORDS64(RATE) - 1] ^= uint64(0x80) << ((BYTES64(RATE) - 1) % n * 8)
+    for i := uint64(0); i < WORDS64(RATE); i++ {
+        STORE64(lastblock[n*i:n*(i+1)],s[i])
+    }
 
-    for inlen >= n {
-        c := LOAD64(in[n*i:n*(i+1)])
-        STORE64(out[n*i:n*(i+1)], s[i] ^ c)
+    copy(lastblock[:],in[:inlen])
+    lastblock[inlen] ^= 0x01
+    lastblock[BYTES64(RATE) - 1] ^= 0x80
+
+    for i:= uint64(0); i < WORDS64(RATE); i++ {
+        c := LOAD64(lastblock[n*i:n*(i+1)])
+        STORE64(lastblock[n*i:n*(i+1)], s[i] ^ c)
         s[i] = c
-        inlen -= n
-        i++
     }
-
-    /* decrypt last bytes */
-    b := make([]uint8, n)
-    STORE64(b,s[i])
-    for j := uint64(0); j < inlen; j++ {
-        c := in[n*i+j]
-        out[n*i+j] = b[j] ^ c
-        b[j] = c
-    }
-    s[i] = LOAD64(b)
-    BURN8(b,n)
+    copy(out[:inlen],lastblock[:])
+    BURN8(lastblock[:],BYTES64(RATE))
 }
 
 
@@ -353,7 +346,7 @@ func AEAD_decrypt(
     *mlen = clen - BYTES64(NORX_A)
     result = verify_tag(c[clen - BYTES64(NORX_A):], tag)
     if result != 0 {
-        BURN8(m, clen - BYTES64(NORX_A))
+        BURN8(m[:], clen - BYTES64(NORX_A))
     }
     BURN64(state.s[:], WORDS64(NORX_B))
     return result

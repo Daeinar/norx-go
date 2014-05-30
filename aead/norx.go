@@ -131,8 +131,8 @@ func process_header(state *state_t, in []uint8, inlen uint64) {
 func encrypt_msg(state *state_t, out []uint8, in []uint8, inlen uint64) {
 
     if inlen > 0 {
-        n := BYTES64(RATE)
         i := uint64(0)
+        n := BYTES64(RATE)
         for inlen >= n {
             encrypt_block(state, out[n*i:n*(i+1)], in[n*i:n*(i+1)])
             inlen -= n
@@ -146,8 +146,8 @@ func encrypt_msg(state *state_t, out []uint8, in []uint8, inlen uint64) {
 func decrypt_msg(state *state_t, out []uint8, in []uint8, inlen uint64) {
 
     if inlen > 0 {
-        n := BYTES64(RATE)
         i := uint64(0)
+        n := BYTES64(RATE)
         for inlen >= n {
             decrypt_block(state, out[n*i:n*(i+1)], in[n*i:n*(i+1)])
             inlen -= n
@@ -280,8 +280,8 @@ func decrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
     inject_tag(state, PAYLOAD_TAG)
     permute(state)
 
-    i := uint64(0)
     s := state.s[:]
+    i := uint64(0)
     n := BYTES64(NORX_W)
     b := make([]uint8, n)
 

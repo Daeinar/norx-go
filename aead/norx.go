@@ -301,11 +301,13 @@ func decrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
 
     /* decrypt last bytes */
     b := make([]uint8, n)
-    copy(b,in[n*i:n*i+inlen])
-    x := LOAD64(b)
-    STORE64(b, s[i] ^ x)
-    copy(out[n*i:n*i+inlen],b)
-    s[i] = x
+    STORE64(b,s[i])
+    for j := uint64(0); j < inlen; j++ {
+        c := in[n*i+j]
+        out[n*i+j] = b[j] ^ c
+        b[j] = c
+    }
+    s[i] = LOAD64(b)
     BURN8(b,n)
 }
 

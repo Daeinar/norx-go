@@ -28,7 +28,7 @@ func Genkat() {
     var k = make([]uint8, klen)
     var n = make([]uint8, nlen)
 
-    var i uint64
+    var i,j uint64
 
     for i = 0; i < wlen; i++ { w[i] = uint8(255 & (i*197 + 123)) }
     for i = 0; i < hlen; i++ { h[i] = uint8(255 & (i*193 + 123)) }
@@ -50,7 +50,14 @@ func Genkat() {
 
         norx.AEAD_encrypt(c, &clen, h, hlen, m, mlen, t, tlen, n, k)
 
-        norx.Print_bytes(c, clen)
+        for j = 0; j < clen; j++ {
+            if j % 7 == 0 && j != 0 {
+                fmt.Println()
+            }
+            fmt.Printf("0x%02X, ", c[j])
+        }
+        fmt.Printf("\n")
+
         if i == wlen - 1 {
             fmt.Println("}")
         } else {

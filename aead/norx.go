@@ -11,22 +11,22 @@
 package aead
 
 const (
-    NORX_W = 64              // wordsize
-    NORX_R = 4               // number of rounds
-    NORX_D = 1               // parallelism degree
-    NORX_A = NORX_W * 4      // tag size
-    NORX_N = NORX_W * 2      // nonce size
-    NORX_K = NORX_W * 4      // key size
-    NORX_B = NORX_W * 16     // state size
-    NORX_C = NORX_W * 6      // capacity size
-    RATE = NORX_B - NORX_C   // rate size
+    NORX_W = 64             // wordsize
+    NORX_R = 4              // number of rounds
+    NORX_D = 1              // parallelism degree
+    NORX_A = NORX_W * 4     // tag size
+    NORX_N = NORX_W * 2     // nonce size
+    NORX_K = NORX_W * 4     // key size
+    NORX_B = NORX_W * 16    // state size
+    NORX_C = NORX_W * 6     // capacity size
+    RATE = NORX_B - NORX_C  // rate size
     HEADER_TAG  = 1 << 0
     PAYLOAD_TAG = 1 << 1
     TRAILER_TAG = 1 << 2
     FINAL_TAG   = 1 << 3
     BRANCH_TAG  = 1 << 4
     MERGE_TAG   = 1 << 5
-    R0, R1, R2, R3 = 8, 19, 40, 63 // rotation offsets
+    R0, R1, R2, R3 = 8, 19, 40, 63  // rotation offsets
     u0, u1 = 0x243F6A8885A308D3, 0x13198A2E03707344
     u2, u3 = 0xA4093822299F31D0, 0x082EFA98EC4E6C89
     u4, u5 = 0xAE8858DC339325A1, 0x670A134EE52D7FA6
@@ -36,11 +36,11 @@ const (
 
 
 const (
-    BYTES_WORD = 8      // byte size of a word
-    BYTES_RATE = 80     // byte size of the rate
-    BYTES_TAG = 32      // byte size of the tag
-    WORDS_RATE = 10     // number of words in the rate
-    WORDS_STATE = 16    // number of words in the state
+    BYTES_WORD  =  8  // byte size of a word
+    BYTES_RATE  = 80  // byte size of the rate
+    BYTES_TAG   = 32  // byte size of the tag
+    WORDS_RATE  = 10  // number of words in the rate
+    WORDS_STATE = 16  // number of words in the state
 )
 
 

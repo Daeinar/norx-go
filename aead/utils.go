@@ -35,14 +35,16 @@ func STORE64(out []uint8, v uint64) {
 
 
 func BURN8(x []uint8, xlen uint64) {
-    for i:= uint64(0); i < xlen; i++ {
+    var i uint64
+    for i = 0; i < xlen; i++ {
         x[i] = 0
     }
 }
 
 
 func BURN64(x []uint64, xlen uint64) {
-    for i:= uint64(0); i < xlen; i++ {
+    var i uint64
+    for i = 0; i < xlen; i++ {
         x[i] = 0
     }
 }

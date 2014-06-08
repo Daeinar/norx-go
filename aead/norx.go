@@ -36,11 +36,11 @@ const (
 
 
 const (
-    BYTES_WORD = 8
-    BYTES_RATE = 80
-    BYTES_TAG = 32
-    WORDS_RATE = 10
-    WORDS_STATE = 16
+    BYTES_WORD = 8      // byte size of a word
+    BYTES_RATE = 80     // byte size of the rate
+    BYTES_TAG = 32      // byte size of the tag
+    WORDS_RATE = 10     // number of words in the rate
+    WORDS_STATE = 16    // number of words in the state
 )
 
 

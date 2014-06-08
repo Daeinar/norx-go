@@ -15,12 +15,12 @@ import "fmt"
 
 func Testvector64() int {
 
-    klen := uint64(32)
-    nlen := uint64(16)
-    hlen := uint64(16)
-    mlen := uint64(32)
-    tlen := uint64(0)
-    clen := uint64(32 + 32)
+    var klen uint64 = 32
+    var nlen uint64 = 16
+    var hlen uint64 = 16
+    var mlen uint64 = 32
+    var tlen uint64 = 0
+    var clen uint64 = 32 + 32
 
     k := make ([]uint8, klen)
     n := make ([]uint8, nlen)

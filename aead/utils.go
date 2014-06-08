@@ -10,16 +10,6 @@
 
 package aead
 
-func BYTES64(x uint64) uint64 {
-    return uint64((x + 7) / 8)
-}
-
-
-func WORDS64(x uint64) uint64 {
-    return uint64((x + 63) / 64)
-}
-
-
 func LOAD64(x []uint8) uint64 {
     return (uint64(x[0]) <<  0) |
            (uint64(x[1]) <<  8) |

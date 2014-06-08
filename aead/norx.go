@@ -11,36 +11,27 @@
 package aead
 
 const (
-    NORX_W = 64             // wordsize
-    NORX_R = 4              // number of rounds
-    NORX_D = 1              // parallelism degree
-    NORX_A = NORX_W * 4     // tag size
-    NORX_N = NORX_W * 2     // nonce size
-    NORX_K = NORX_W * 4     // key size
-    NORX_B = NORX_W * 16    // state size
-    NORX_C = NORX_W * 6     // capacity size
-    RATE = NORX_B - NORX_C  // rate size
-    HEADER_TAG  = 1 << 0
-    PAYLOAD_TAG = 1 << 1
-    TRAILER_TAG = 1 << 2
-    FINAL_TAG   = 1 << 3
-    BRANCH_TAG  = 1 << 4
-    MERGE_TAG   = 1 << 5
-    R0, R1, R2, R3 = 8, 19, 40, 63  // rotation offsets
-    u0, u1 = 0x243F6A8885A308D3, 0x13198A2E03707344
-    u2, u3 = 0xA4093822299F31D0, 0x082EFA98EC4E6C89
-    u4, u5 = 0xAE8858DC339325A1, 0x670A134EE52D7FA6
-    u6, u7 = 0xC4316D80CD967541, 0xD21DFBF8B630B762
-    u8, u9 = 0x375A18D261E7F892, 0x343D1F187D92285B
-)
-
-
-const (
-    BYTES_WORD  =  8  // byte size of a word
-    BYTES_RATE  = 80  // byte size of the rate
-    BYTES_TAG   = 32  // byte size of the tag
-    WORDS_RATE  = 10  // number of words in the rate
-    WORDS_STATE = 16  // number of words in the state
+    NORX_W      = 64                                // wordsize
+    NORX_R      = 4                                 // number of rounds
+    NORX_D      = 1                                 // parallelism degree
+    NORX_A      = NORX_W * 4                        // tag size
+    WORDS_RATE  = 10                                // number of words in the rate
+    WORDS_STATE = 16                                // ... in the state
+    BYTES_WORD  = NORX_W / 8                        // byte size of a word
+    BYTES_RATE  = WORDS_RATE * BYTES_WORD           // ... of the rate
+    BYTES_TAG   = NORX_A / 8                        // ... of the tag
+    HEADER_TAG  = 1 << 0                            // domain separation constant for header
+    PAYLOAD_TAG = 1 << 1                            // ... for payload
+    TRAILER_TAG = 1 << 2                            // ... for trailer
+    FINAL_TAG   = 1 << 3                            // ... for finalisation
+    BRANCH_TAG  = 1 << 4                            // ... for branching
+    MERGE_TAG   = 1 << 5                            // ... for merging
+    R0, R1, R2, R3 = 8, 19, 40, 63                  // rotation offsets
+    U0, U1 = 0x243F6A8885A308D3, 0x13198A2E03707344 // initialisation constants
+    U2, U3 = 0xA4093822299F31D0, 0x082EFA98EC4E6C89 // ...
+    U4, U5 = 0xAE8858DC339325A1, 0x670A134EE52D7FA6 // ...
+    U6, U7 = 0xC4316D80CD967541, 0xD21DFBF8B630B762 // ...
+    U8, U9 = 0x375A18D261E7F892, 0x343D1F187D92285B // ...
 )
 
 
@@ -99,25 +90,25 @@ func setup(state *state_t, k []uint8, n []uint8) {
 
     var s = state.s[:]
 
-    s[ 0] = u0
+    s[ 0] = U0
     s[ 1] = LOAD64(n[ 0: 8])
     s[ 2] = LOAD64(n[ 8:16])
-    s[ 3] = u1
+    s[ 3] = U1
 
     s[ 4] = LOAD64(k[ 0: 8])
     s[ 5] = LOAD64(k[ 8:16])
     s[ 6] = LOAD64(k[16:24])
     s[ 7] = LOAD64(k[24:32])
 
-    s[ 8] = u2
-    s[ 9] = u3
-    s[10] = u4
-    s[11] = u5
+    s[ 8] = U2
+    s[ 9] = U3
+    s[10] = U4
+    s[11] = U5
 
-    s[12] = u6
-    s[13] = u7
-    s[14] = u8
-    s[15] = u9
+    s[12] = U6
+    s[13] = U7
+    s[14] = U8
+    s[15] = U9
 
     s[14] ^= (NORX_R << 26) | (NORX_D << 18) | (NORX_W << 10) | NORX_A
     permute(state)

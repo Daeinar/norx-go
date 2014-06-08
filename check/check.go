@@ -16,11 +16,11 @@ import "fmt"
 
 func Genkat() {
 
-    wlen := uint64(256)
-    hlen := uint64(256)
-    tlen := uint64(0)
-    klen := uint64(32)
-    nlen := uint64(16)
+    var wlen uint64 = 256
+    var hlen uint64 = 256
+    var tlen uint64 = 0
+    var klen uint64 = 32
+    var nlen uint64 = 16
 
     w := make([]uint8, wlen)
     h := make([]uint8, hlen)

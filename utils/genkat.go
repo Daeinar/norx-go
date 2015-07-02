@@ -51,17 +51,15 @@ func Genkat() {
         norx.AEAD_encrypt(c, &clen, h, hlen, m, mlen, t, tlen, n, k)
 
         for j = 0; j < clen; j++ {
-            if j % 7 == 0 && j != 0 {
+            fmt.Printf("0x%02X, ", c[j])
+            if j % 8 == 7 || j == clen - 1 {
                 fmt.Println()
             }
-            fmt.Printf("0x%02X, ", c[j])
         }
-        fmt.Printf("\n")
+        fmt.Println()
 
         if i == wlen - 1 {
             fmt.Println("}")
-        } else {
-            fmt.Println()
         }
     }
     fmt.Println("return kat[i:j]\n}")

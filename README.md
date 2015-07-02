@@ -16,9 +16,9 @@ go get https://github.com/Daeinar/norx-go
 ```
 
 ####Usage
-The following command installs norx-go and runs the test vectors from `test.go`:
+The following command installs norx-go and runs the test vectors from `main.go`:
 ```
-go install && norx-go
+go install && norx-go check
 ```
 
 ####License

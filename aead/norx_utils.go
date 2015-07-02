@@ -1,5 +1,5 @@
 /*
-    utils.go
+    norx_utils.go
     ------
 
     This file is part of the Go reference implementation of NORX.

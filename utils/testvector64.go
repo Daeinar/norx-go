@@ -8,7 +8,7 @@
     :license: BSD (3-Clause), see LICENSE
 */
 
-package check
+package utils
 
 import norx "github.com/daeinar/norx-go/aead"
 import "fmt"

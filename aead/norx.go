@@ -110,7 +110,11 @@ func setup(state *state_t, k []uint8, n []uint8) {
     s[14] = U8
     s[15] = U9
 
-    s[14] ^= (NORX_R << 26) | (NORX_D << 18) | (NORX_W << 10) | NORX_A
+    s[12] ^= NORX_W
+    s[13] ^= NORX_R
+    s[14] ^= NORX_D
+    s[15] ^= NORX_A
+
     permute(state)
 }
 

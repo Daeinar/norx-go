@@ -1,5 +1,5 @@
 /*
-    check.go
+    genkat.go
     ------
 
     This file is part of the Go reference implementation of NORX.

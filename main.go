@@ -10,11 +10,13 @@
 
 package main
 
-import "os"
+/*import "encoding/binary"*/
 import "fmt"
+import "os"
 import utils "github.com/daeinar/norx-go/utils"
 
 func main() {
+
 
     args := os.Args
 
@@ -29,5 +31,6 @@ func main() {
             fmt.Println("Error: Unknown parameter.")
         }
     }
+
 
 }

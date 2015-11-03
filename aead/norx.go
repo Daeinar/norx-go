@@ -34,71 +34,98 @@ const (
     U8, U9 = 0x375A18D261E7F892, 0x343D1F187D92285B // ...
 )
 
-
 type state_t struct {
     s [WORDS_STATE]uint64
 }
 
+func load64(in []uint8) uint64 {
+    return (uint64(in[0]) <<  0) |
+           (uint64(in[1]) <<  8) |
+           (uint64(in[2]) << 16) |
+           (uint64(in[3]) << 24) |
+           (uint64(in[4]) << 32) |
+           (uint64(in[5]) << 40) |
+           (uint64(in[6]) << 48) |
+           (uint64(in[7]) << 56)
+}
 
-func ROTR(x,c uint64) uint64 {
+func store64(out []uint8, in uint64) {
+    out[0] = uint8(in >>  0)
+    out[1] = uint8(in >>  8)
+    out[2] = uint8(in >> 16)
+    out[3] = uint8(in >> 24)
+    out[4] = uint8(in >> 32)
+    out[5] = uint8(in >> 40)
+    out[6] = uint8(in >> 48)
+    out[7] = uint8(in >> 56)
+}
+
+func burn8(x []uint8, xlen uint64) {
+    for i := uint64(0); i < xlen; i++ {
+        x[i] = 0
+    }
+}
+
+func burn64(x []uint64, xlen uint64) {
+    for i := uint64(0); i < xlen; i++ {
+        x[i] = 0
+    }
+}
+
+func rotr(x,c uint64) uint64 {
     return (x >> c | x << (NORX_W - c))
 }
 
-
-func H(x,y uint64) uint64 {
+func h(x,y uint64) uint64 {
     return (x ^ y) ^ ((x & y) << 1)
 }
 
+func g(a,b,c,d uint64) (uint64,uint64,uint64,uint64) {
 
-func G(a,b,c,d uint64) (uint64,uint64,uint64,uint64) {
-
-    a = H(a,b)
-    d = ROTR(a ^ d, R0)
-    c = H(c,d)
-    b = ROTR(b ^ c, R1)
-    a = H(a,b)
-    d = ROTR(a ^ d, R2)
-    c = H(c,d)
-    b = ROTR(b ^ c, R3)
+    a = h(a,b)
+    d = rotr(a ^ d, R0)
+    c = h(c,d)
+    b = rotr(b ^ c, R1)
+    a = h(a,b)
+    d = rotr(a ^ d, R2)
+    c = h(c,d)
+    b = rotr(b ^ c, R3)
     return a,b,c,d
 }
 
-
-func F(s []uint64) {
+func f(s []uint64) {
 
     // Column step
-    s[ 0], s[ 4], s[ 8], s[12] = G(s[ 0], s[ 4], s[ 8], s[12])
-    s[ 1], s[ 5], s[ 9], s[13] = G(s[ 1], s[ 5], s[ 9], s[13])
-    s[ 2], s[ 6], s[10], s[14] = G(s[ 2], s[ 6], s[10], s[14])
-    s[ 3], s[ 7], s[11], s[15] = G(s[ 3], s[ 7], s[11], s[15])
+    s[ 0], s[ 4], s[ 8], s[12] = g(s[ 0], s[ 4], s[ 8], s[12])
+    s[ 1], s[ 5], s[ 9], s[13] = g(s[ 1], s[ 5], s[ 9], s[13])
+    s[ 2], s[ 6], s[10], s[14] = g(s[ 2], s[ 6], s[10], s[14])
+    s[ 3], s[ 7], s[11], s[15] = g(s[ 3], s[ 7], s[11], s[15])
     // Diagonal step
-    s[ 0], s[ 5], s[10], s[15] = G(s[ 0], s[ 5], s[10], s[15])
-    s[ 1], s[ 6], s[11], s[12] = G(s[ 1], s[ 6], s[11], s[12])
-    s[ 2], s[ 7], s[ 8], s[13] = G(s[ 2], s[ 7], s[ 8], s[13])
-    s[ 3], s[ 4], s[ 9], s[14] = G(s[ 3], s[ 4], s[ 9], s[14])
+    s[ 0], s[ 5], s[10], s[15] = g(s[ 0], s[ 5], s[10], s[15])
+    s[ 1], s[ 6], s[11], s[12] = g(s[ 1], s[ 6], s[11], s[12])
+    s[ 2], s[ 7], s[ 8], s[13] = g(s[ 2], s[ 7], s[ 8], s[13])
+    s[ 3], s[ 4], s[ 9], s[14] = g(s[ 3], s[ 4], s[ 9], s[14])
 }
 
-
-func permute(state *state_t) {
+func norx_permute(state *state_t) {
 
     var s = state.s[:]
-    for i := 0; i < NORX_R; i++ { F(s) }
+    for i := 0; i < NORX_R; i++ { f(s) }
 }
 
-
-func setup(state *state_t, k []uint8, n []uint8) {
+func norx_init(state *state_t, k []uint8, n []uint8) {
 
     var s = state.s[:]
 
     s[ 0] = U0
-    s[ 1] = LOAD64(n[ 0: 8])
-    s[ 2] = LOAD64(n[ 8:16])
+    s[ 1] = load64(n[ 0: 8])
+    s[ 2] = load64(n[ 8:16])
     s[ 3] = U1
 
-    s[ 4] = LOAD64(k[ 0: 8])
-    s[ 5] = LOAD64(k[ 8:16])
-    s[ 6] = LOAD64(k[16:24])
-    s[ 7] = LOAD64(k[24:32])
+    s[ 4] = load64(k[ 0: 8])
+    s[ 5] = load64(k[ 8:16])
+    s[ 6] = load64(k[16:24])
+    s[ 7] = load64(k[24:32])
 
     s[ 8] = U2
     s[ 9] = U3
@@ -115,11 +142,10 @@ func setup(state *state_t, k []uint8, n []uint8) {
     s[14] ^= NORX_D
     s[15] ^= NORX_A
 
-    permute(state)
+    norx_permute(state)
 }
 
-
-func process_header(state *state_t, in []uint8, inlen uint64) {
+func norx_absorb_data(state *state_t, in []uint8, inlen uint64, tag uint64) {
 
     if inlen > 0 {
 
@@ -127,16 +153,15 @@ func process_header(state *state_t, in []uint8, inlen uint64) {
         var n uint64 = BYTES_RATE
 
         for inlen >= n {
-            absorb_block(state, in[n*i:n*(i+1)], HEADER_TAG)
+            norx_absorb_block(state, in[n*i:n*(i+1)], tag)
             inlen -= n
             i++
         }
-        absorb_lastblock(state, in[n*i:n*i+inlen], inlen, HEADER_TAG)
+        norx_absorb_lastblock(state, in[n*i:n*i+inlen], inlen, tag)
     }
 }
 
-
-func encrypt_msg(state *state_t, out []uint8, in []uint8, inlen uint64) {
+func norx_encrypt_data(state *state_t, out []uint8, in []uint8, inlen uint64) {
 
     if inlen > 0 {
 
@@ -144,7 +169,7 @@ func encrypt_msg(state *state_t, out []uint8, in []uint8, inlen uint64) {
         var n uint64 = BYTES_RATE
 
         for inlen >= n {
-            encrypt_block(state, out[n*i:n*(i+1)], in[n*i:n*(i+1)])
+            norx_encrypt_block(state, out[n*i:n*(i+1)], in[n*i:n*(i+1)])
             inlen -= n
             i++
         }
@@ -152,25 +177,7 @@ func encrypt_msg(state *state_t, out []uint8, in []uint8, inlen uint64) {
     }
 }
 
-
-func decrypt_msg(state *state_t, out []uint8, in []uint8, inlen uint64) {
-
-    if inlen > 0 {
-
-        var i uint64 = 0
-        var n uint64 = BYTES_RATE
-
-        for inlen >= n {
-            decrypt_block(state, out[n*i:n*(i+1)], in[n*i:n*(i+1)])
-            inlen -= n
-            i++
-        }
-        decrypt_lastblock(state, out[n*i:n*i+inlen], in[n*i:n*i+inlen], inlen)
-    }
-}
-
-
-func process_trailer(state *state_t, in []uint8, inlen uint64) {
+func norx_decrypt_data(state *state_t, out []uint8, in []uint8, inlen uint64) {
 
     if inlen > 0 {
 
@@ -178,20 +185,19 @@ func process_trailer(state *state_t, in []uint8, inlen uint64) {
         var n uint64 = BYTES_RATE
 
         for inlen >= n {
-            absorb_block(state, in[n*i:n*(i+1)], TRAILER_TAG)
+            norx_decrypt_block(state, out[n*i:n*(i+1)], in[n*i:n*(i+1)])
             inlen -= n
             i++
         }
-        absorb_lastblock(state, in[n*i:n*i+inlen], inlen, TRAILER_TAG)
+        norx_decrypt_lastblock(state, out[n*i:n*i+inlen], in[n*i:n*i+inlen], inlen)
     }
 }
 
-
-func output_tag(state *state_t, tag []uint8) {
+func norx_output_tag(state *state_t, tag []uint8) {
 
     inject_tag(state, FINAL_TAG)
-    permute(state)
-    permute(state)
+    norx_permute(state)
+    norx_permute(state)
 
     var s = state.s[:]
     var lastblock [BYTES_RATE]uint8
@@ -199,14 +205,13 @@ func output_tag(state *state_t, tag []uint8) {
     var i uint64
 
     for i = 0; i < WORDS_RATE; i++ {
-        STORE64(lastblock[b*i:b*(i+1)], s[i])
+        store64(lastblock[b*i:b*(i+1)], s[i])
     }
     copy(tag[:], lastblock[:])
-    BURN8(lastblock[:], BYTES_RATE)
+    burn8(lastblock[:], BYTES_RATE)
 }
 
-
-func verify_tag(tag1 []uint8, tag2 []uint8) int {
+func norx_verify_tag(tag1 []uint8, tag2 []uint8) int {
 
     var acc int = 0
     var i uint64
@@ -217,7 +222,6 @@ func verify_tag(tag1 []uint8, tag2 []uint8) int {
     return (((acc - 1) >> 8) & 1) - 1
 }
 
-
 func pad(out []uint8, in []uint8, inlen uint64) {
 
     copy(out[:],in[:inlen])
@@ -225,85 +229,78 @@ func pad(out []uint8, in []uint8, inlen uint64) {
     out[BYTES_RATE - 1] |= 0x80
 }
 
-
 func inject_tag(state *state_t, tag uint64) {
 
     var s = state.s[:]
     s[15] ^= tag
 }
 
-
-func absorb_block(state *state_t, in []uint8, tag uint64) {
+func norx_absorb_block(state *state_t, in []uint8, tag uint64) {
 
     inject_tag(state, tag)
-    permute(state)
+    norx_permute(state)
 
     var s = state.s[:]
     var b uint64 = BYTES_WORD
     var i uint64
 
     for i = 0; i < WORDS_RATE; i++ {
-        s[i] ^= LOAD64(in[b*i:b*(i+1)])
+        s[i] ^= load64(in[b*i:b*(i+1)])
     }
 }
 
-
-func absorb_lastblock(state *state_t, in []uint8, inlen uint64, tag uint64) {
+func norx_absorb_lastblock(state *state_t, in []uint8, inlen uint64, tag uint64) {
 
     var lastblock [BYTES_RATE]uint8
     pad(lastblock[:], in[:], inlen)
-    absorb_block(state, lastblock[:], tag)
-    BURN8(lastblock[:], BYTES_RATE)
+    norx_absorb_block(state, lastblock[:], tag)
+    burn8(lastblock[:], BYTES_RATE)
 }
 
-
-func encrypt_block(state *state_t, out []uint8, in []uint8) {
+func norx_encrypt_block(state *state_t, out []uint8, in []uint8) {
 
     inject_tag(state, PAYLOAD_TAG)
-    permute(state)
+    norx_permute(state)
 
     var s = state.s[:]
     var b uint64 = BYTES_WORD
     var i uint64
 
     for i = 0; i < WORDS_RATE; i++ {
-        s[i] ^= LOAD64(in[b*i:b*(i+1)])
-        STORE64(out[b*i:b*(i+1)], s[i])
+        s[i] ^= load64(in[b*i:b*(i+1)])
+        store64(out[b*i:b*(i+1)], s[i])
     }
 }
-
 
 func encrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
 
     var lastblock [BYTES_RATE]uint8
     pad(lastblock[:], in[:], inlen)
-    encrypt_block(state, lastblock[:], lastblock[:])
+    norx_encrypt_block(state, lastblock[:], lastblock[:])
     copy(out[:], lastblock[:])
-    BURN8(lastblock[:], BYTES_RATE)
+    burn8(lastblock[:], BYTES_RATE)
 }
 
-
-func decrypt_block(state *state_t, out []uint8, in []uint8) {
+func norx_decrypt_block(state *state_t, out []uint8, in []uint8) {
 
     inject_tag(state, PAYLOAD_TAG)
-    permute(state)
+    norx_permute(state)
 
     var s = state.s[:]
     var b uint64 = BYTES_WORD
     var i uint64
 
     for i = 0; i < WORDS_RATE; i++ {
-        c := LOAD64(in[b*i:b*(i+1)])
-        STORE64(out[b*i:b*(i+1)], s[i] ^ c)
+        c := load64(in[b*i:b*(i+1)])
+        store64(out[b*i:b*(i+1)], s[i] ^ c)
         s[i] = c
     }
 }
 
-
-func decrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
+func norx_decrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
 
     inject_tag(state, PAYLOAD_TAG)
-    permute(state)
+    norx_permute(state)
 
     var s = state.s[:]
     var n uint64 = BYTES_WORD
@@ -311,21 +308,20 @@ func decrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
     var i uint64
 
     for i = 0; i < WORDS_RATE; i++ {
-        STORE64(lastblock[n*i:n*(i+1)],s[i])
+        store64(lastblock[n*i:n*(i+1)],s[i])
     }
     copy(lastblock[:],in[:inlen])
     lastblock[inlen] ^= 0x01
     lastblock[BYTES_RATE - 1] ^= 0x80
 
     for i = 0; i < WORDS_RATE; i++ {
-        c := LOAD64(lastblock[n*i:n*(i+1)])
-        STORE64(lastblock[n*i:n*(i+1)], s[i] ^ c)
+        c := load64(lastblock[n*i:n*(i+1)])
+        store64(lastblock[n*i:n*(i+1)], s[i] ^ c)
         s[i] = c
     }
     copy(out[:inlen],lastblock[:])
-    BURN8(lastblock[:],BYTES_RATE)
+    burn8(lastblock[:],BYTES_RATE)
 }
-
 
 func AEAD_encrypt(
     c []uint8, clen *uint64,
@@ -336,15 +332,14 @@ func AEAD_encrypt(
     key []uint8) {
 
     var state = new(state_t)
-    setup(state, key, nonce)
-    process_header(state, h, hlen)
-    encrypt_msg(state, c, m, mlen)
-    process_trailer(state, t, tlen)
-    output_tag(state, c[mlen:])
+    norx_init(state, key, nonce)
+    norx_absorb_data(state, h, hlen, HEADER_TAG)
+    norx_encrypt_data(state, c, m, mlen)
+    norx_absorb_data(state, t, tlen, TRAILER_TAG)
+    norx_output_tag(state, c[mlen:])
     *clen = mlen + BYTES_TAG
-    BURN64(state.s[:], WORDS_STATE)
+    burn64(state.s[:], WORDS_STATE)
 }
-
 
 func AEAD_decrypt(
     m []uint8, mlen *uint64,
@@ -360,17 +355,17 @@ func AEAD_decrypt(
     var result int = -1
     var tag [BYTES_TAG]uint8
     var state = new(state_t)
-    setup(state, key, nonce)
-    process_header(state, h, hlen)
-    decrypt_msg(state, m, c, clen - BYTES_TAG)
-    process_trailer(state, t, tlen)
-    output_tag(state, tag[:])
+    norx_init(state, key, nonce)
+    norx_absorb_data(state, h, hlen, HEADER_TAG)
+    norx_decrypt_data(state, m, c, clen - BYTES_TAG)
+    norx_absorb_data(state, t, tlen, TRAILER_TAG)
+    norx_output_tag(state, tag[:])
     *mlen = clen - BYTES_TAG
-    result = verify_tag(c[clen - BYTES_TAG:], tag[:])
+    result = norx_verify_tag(c[clen - BYTES_TAG:], tag[:])
     if result != 0 {
-        BURN8(m[:], clen - BYTES_TAG)
+        burn8(m[:], clen - BYTES_TAG)
     }
-    BURN64(state.s[:], WORDS_STATE)
+    burn64(state.s[:], WORDS_STATE)
     return result
 }
 

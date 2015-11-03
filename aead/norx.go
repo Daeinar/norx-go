@@ -34,7 +34,7 @@ const (
     U8, U9 = 0x375A18D261E7F892, 0x343D1F187D92285B // ...
 )
 
-type state_t struct {
+type norx_state_t struct {
     s [WORDS_STATE]uint64
 }
 
@@ -107,13 +107,13 @@ func f(s []uint64) {
     s[ 3], s[ 4], s[ 9], s[14] = g(s[ 3], s[ 4], s[ 9], s[14])
 }
 
-func norx_permute(state *state_t) {
+func norx_permute(state *norx_state_t) {
 
     var s = state.s[:]
-    for i := 0; i < NORX_R; i++ { f(s) }
+    for i := uint64(0); i < NORX_R; i++ { f(s) }
 }
 
-func norx_init(state *state_t, k []uint8, n []uint8) {
+func norx_init(state *norx_state_t, k []uint8, n []uint8) {
 
     var s = state.s[:]
 
@@ -145,66 +145,59 @@ func norx_init(state *state_t, k []uint8, n []uint8) {
     norx_permute(state)
 }
 
-func norx_absorb_data(state *state_t, in []uint8, inlen uint64, tag uint64) {
+func norx_absorb_data(state *norx_state_t, in []uint8, inlen uint64, tag uint64) {
 
     if inlen > 0 {
 
         var i uint64 = 0
-        var n uint64 = BYTES_RATE
+        const n uint64 = BYTES_RATE
 
-        for inlen >= n {
+        for i = 0; inlen >= n; inlen, i = inlen-n, i+1 {
             norx_absorb_block(state, in[n*i:n*(i+1)], tag)
-            inlen -= n
-            i++
         }
         norx_absorb_lastblock(state, in[n*i:n*i+inlen], inlen, tag)
     }
 }
 
-func norx_encrypt_data(state *state_t, out []uint8, in []uint8, inlen uint64) {
+func norx_encrypt_data(state *norx_state_t, out []uint8, in []uint8, inlen uint64) {
 
     if inlen > 0 {
 
         var i uint64 = 0
-        var n uint64 = BYTES_RATE
+        const n uint64 = BYTES_RATE
 
-        for inlen >= n {
+        for i = 0; inlen >= n; inlen, i = inlen-n, i+1 {
             norx_encrypt_block(state, out[n*i:n*(i+1)], in[n*i:n*(i+1)])
-            inlen -= n
-            i++
         }
         encrypt_lastblock(state, out[n*i:n*i+inlen], in[n*i:n*i+inlen], inlen)
     }
 }
 
-func norx_decrypt_data(state *state_t, out []uint8, in []uint8, inlen uint64) {
+func norx_decrypt_data(state *norx_state_t, out []uint8, in []uint8, inlen uint64) {
 
     if inlen > 0 {
 
         var i uint64 = 0
-        var n uint64 = BYTES_RATE
+        const n uint64 = BYTES_RATE
 
-        for inlen >= n {
+        for i = 0; inlen >= n; inlen, i = inlen-n, i+1 {
             norx_decrypt_block(state, out[n*i:n*(i+1)], in[n*i:n*(i+1)])
-            inlen -= n
-            i++
         }
         norx_decrypt_lastblock(state, out[n*i:n*i+inlen], in[n*i:n*i+inlen], inlen)
     }
 }
 
-func norx_output_tag(state *state_t, tag []uint8) {
+func norx_output_tag(state *norx_state_t, tag []uint8) {
 
-    inject_tag(state, FINAL_TAG)
+    state.s[15] ^= FINAL_TAG
     norx_permute(state)
     norx_permute(state)
 
     var s = state.s[:]
     var lastblock [BYTES_RATE]uint8
-    var b uint64 = BYTES_WORD
-    var i uint64
+    const b uint64 = BYTES_WORD
 
-    for i = 0; i < WORDS_RATE; i++ {
+    for i := uint64(0); i < WORDS_RATE; i++ {
         store64(lastblock[b*i:b*(i+1)], s[i])
     }
     copy(tag[:], lastblock[:])
@@ -214,107 +207,96 @@ func norx_output_tag(state *state_t, tag []uint8) {
 func norx_verify_tag(tag1 []uint8, tag2 []uint8) int {
 
     var acc int = 0
-    var i uint64
 
-    for i = 0; i < BYTES_TAG; i++ {
+    for i := uint64(0); i < BYTES_TAG; i++ {
         acc |= int(tag1[i] ^ tag2[i])
     }
     return (((acc - 1) >> 8) & 1) - 1
 }
 
-func pad(out []uint8, in []uint8, inlen uint64) {
+func norx_pad(out []uint8, in []uint8, inlen uint64) {
 
     copy(out[:],in[:inlen])
     out[inlen] = 0x01
     out[BYTES_RATE - 1] |= 0x80
 }
 
-func inject_tag(state *state_t, tag uint64) {
+func norx_absorb_block(state *norx_state_t, in []uint8, tag uint64) {
 
-    var s = state.s[:]
-    s[15] ^= tag
-}
-
-func norx_absorb_block(state *state_t, in []uint8, tag uint64) {
-
-    inject_tag(state, tag)
+    state.s[15] ^= tag
     norx_permute(state)
 
     var s = state.s[:]
-    var b uint64 = BYTES_WORD
-    var i uint64
+    const b uint64 = BYTES_WORD
 
-    for i = 0; i < WORDS_RATE; i++ {
+    for i := uint64(0); i < WORDS_RATE; i++ {
         s[i] ^= load64(in[b*i:b*(i+1)])
     }
 }
 
-func norx_absorb_lastblock(state *state_t, in []uint8, inlen uint64, tag uint64) {
+func norx_absorb_lastblock(state *norx_state_t, in []uint8, inlen uint64, tag uint64) {
 
     var lastblock [BYTES_RATE]uint8
-    pad(lastblock[:], in[:], inlen)
+    norx_pad(lastblock[:], in[:], inlen)
     norx_absorb_block(state, lastblock[:], tag)
     burn8(lastblock[:], BYTES_RATE)
 }
 
-func norx_encrypt_block(state *state_t, out []uint8, in []uint8) {
+func norx_encrypt_block(state *norx_state_t, out []uint8, in []uint8) {
 
-    inject_tag(state, PAYLOAD_TAG)
+    state.s[15] ^= PAYLOAD_TAG
     norx_permute(state)
 
     var s = state.s[:]
-    var b uint64 = BYTES_WORD
-    var i uint64
+    const b uint64 = BYTES_WORD
 
-    for i = 0; i < WORDS_RATE; i++ {
+    for i := uint64(0); i < WORDS_RATE; i++ {
         s[i] ^= load64(in[b*i:b*(i+1)])
         store64(out[b*i:b*(i+1)], s[i])
     }
 }
 
-func encrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
+func encrypt_lastblock(state *norx_state_t, out []uint8, in []uint8, inlen uint64) {
 
     var lastblock [BYTES_RATE]uint8
-    pad(lastblock[:], in[:], inlen)
+    norx_pad(lastblock[:], in[:], inlen)
     norx_encrypt_block(state, lastblock[:], lastblock[:])
     copy(out[:], lastblock[:])
     burn8(lastblock[:], BYTES_RATE)
 }
 
-func norx_decrypt_block(state *state_t, out []uint8, in []uint8) {
+func norx_decrypt_block(state *norx_state_t, out []uint8, in []uint8) {
 
-    inject_tag(state, PAYLOAD_TAG)
+    state.s[15] ^= PAYLOAD_TAG
     norx_permute(state)
 
     var s = state.s[:]
-    var b uint64 = BYTES_WORD
-    var i uint64
+    const b uint64 = BYTES_WORD
 
-    for i = 0; i < WORDS_RATE; i++ {
+    for i := uint64(0); i < WORDS_RATE; i++ {
         c := load64(in[b*i:b*(i+1)])
         store64(out[b*i:b*(i+1)], s[i] ^ c)
         s[i] = c
     }
 }
 
-func norx_decrypt_lastblock(state *state_t, out []uint8, in []uint8, inlen uint64) {
+func norx_decrypt_lastblock(state *norx_state_t, out []uint8, in []uint8, inlen uint64) {
 
-    inject_tag(state, PAYLOAD_TAG)
+    state.s[15] ^= PAYLOAD_TAG
     norx_permute(state)
 
     var s = state.s[:]
-    var n uint64 = BYTES_WORD
+    const n uint64 = BYTES_WORD
     var lastblock [BYTES_RATE]uint8
-    var i uint64
 
-    for i = 0; i < WORDS_RATE; i++ {
+    for i := uint64(0); i < WORDS_RATE; i++ {
         store64(lastblock[n*i:n*(i+1)],s[i])
     }
     copy(lastblock[:],in[:inlen])
     lastblock[inlen] ^= 0x01
     lastblock[BYTES_RATE - 1] ^= 0x80
 
-    for i = 0; i < WORDS_RATE; i++ {
+    for i := uint64(0); i < WORDS_RATE; i++ {
         c := load64(lastblock[n*i:n*(i+1)])
         store64(lastblock[n*i:n*(i+1)], s[i] ^ c)
         s[i] = c
@@ -331,7 +313,7 @@ func AEAD_encrypt(
     nonce []uint8,
     key []uint8) {
 
-    var state = new(state_t)
+    var state = new(norx_state_t)
     norx_init(state, key, nonce)
     norx_absorb_data(state, h, hlen, HEADER_TAG)
     norx_encrypt_data(state, c, m, mlen)
@@ -354,7 +336,7 @@ func AEAD_decrypt(
     }
     var result int = -1
     var tag [BYTES_TAG]uint8
-    var state = new(state_t)
+    var state = new(norx_state_t)
     norx_init(state, key, nonce)
     norx_absorb_data(state, h, hlen, HEADER_TAG)
     norx_decrypt_data(state, m, c, clen - BYTES_TAG)

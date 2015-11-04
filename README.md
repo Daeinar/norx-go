@@ -13,7 +13,7 @@ This repository provides a Go implementation of NORX6441 v2.0. The NORX AEAD alg
 ## Installation & Usage
 To check out the source code execute:
 ```
-go get https://github.com/Daeinar/norx-go
+go get github.com/Daeinar/norx-go
 ```
 
 To install NORX and run the test vectors execute:

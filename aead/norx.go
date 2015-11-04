@@ -12,22 +12,22 @@
 package aead
 
 const (
-    NORX_W      = 64                                // wordsize
-    NORX_L      = 4                                 // number of rounds
-    NORX_P      = 1                                 // parallelism degree
-    NORX_T      = NORX_W * 4                        // tag size
-    WORDS_RATE  = 12                                // number of words in the rate
-    WORDS_STATE = 16                                // ... in the state
-    BYTES_WORD  = NORX_W / 8                        // number of bytes in a word
-    BYTES_RATE  = WORDS_RATE * BYTES_WORD           // ... in the rate
-    BYTES_TAG   = NORX_T / 8                        // ... in the tag
-    HEADER_TAG  = 0x01                              // domain separation constant for header
-    PAYLOAD_TAG = 0x02                              // ... for payload
-    TRAILER_TAG = 0x04                              // ... for trailer
-    FINAL_TAG   = 0x08                              // ... for finalisation
-    BRANCH_TAG  = 0x10                              // ... for branching
-    MERGE_TAG   = 0x20                              // ... for merging
-    R0, R1, R2, R3 = 8, 19, 40, 63                  // rotation offsets
+    NORX_W      = 64                       // wordsize
+    NORX_L      = 4                        // number of rounds
+    NORX_P      = 1                        // parallelism degree
+    NORX_T      = NORX_W * 4               // tag size
+    WORDS_RATE  = 12                       // number of words in the rate
+    WORDS_STATE = 16                       // ... in the state
+    BYTES_WORD  = NORX_W / 8               // number of bytes in a word
+    BYTES_RATE  = WORDS_RATE * BYTES_WORD  // ... in the rate
+    BYTES_TAG   = NORX_T / 8               // ... in the tag
+    HEADER_TAG  = 0x01                     // domain separation constant for header
+    PAYLOAD_TAG = 0x02                     // ... for payload
+    TRAILER_TAG = 0x04                     // ... for trailer
+    FINAL_TAG   = 0x08                     // ... for finalisation
+    BRANCH_TAG  = 0x10                     // ... for branching
+    MERGE_TAG   = 0x20                     // ... for merging
+    R0, R1, R2, R3 = 8, 19, 40, 63         // rotation offsets
 )
 
 type norx_state_t struct {
@@ -122,18 +122,18 @@ func norx_init(state *norx_state_t, k []uint8, n []uint8) {
     f(s)
     f(s)
 
-    state.s[ 0] = load64(n[ 0: 8])
-    state.s[ 1] = load64(n[ 8:16])
+    s[ 0] = load64(n[ 0: 8])
+    s[ 1] = load64(n[ 8:16])
 
-    state.s[ 4] = load64(k[ 0: 8])
-    state.s[ 5] = load64(k[ 8:16])
-    state.s[ 6] = load64(k[16:24])
-    state.s[ 7] = load64(k[24:32])
+    s[ 4] = load64(k[ 0: 8])
+    s[ 5] = load64(k[ 8:16])
+    s[ 6] = load64(k[16:24])
+    s[ 7] = load64(k[24:32])
 
-    state.s[12] ^= NORX_W
-    state.s[13] ^= NORX_L
-    state.s[14] ^= NORX_P
-    state.s[15] ^= NORX_T
+    s[12] ^= NORX_W
+    s[13] ^= NORX_L
+    s[14] ^= NORX_P
+    s[15] ^= NORX_T
 
     norx_permute(state)
 }
@@ -300,17 +300,17 @@ func norx_decrypt_lastblock(state *norx_state_t, out []uint8, in []uint8, inlen 
 
 func AEAD_encrypt(
     c []uint8, clen *uint64,
-    h []uint8, hlen uint64,
+    a []uint8, alen uint64,
     m []uint8, mlen uint64,
-    t []uint8, tlen uint64,
+    z []uint8, zlen uint64,
     nonce []uint8,
     key []uint8) {
 
     var state = new(norx_state_t)
     norx_init(state, key, nonce)
-    norx_absorb_data(state, h, hlen, HEADER_TAG)
+    norx_absorb_data(state, a, alen, HEADER_TAG)
     norx_encrypt_data(state, c, m, mlen)
-    norx_absorb_data(state, t, tlen, TRAILER_TAG)
+    norx_absorb_data(state, z, zlen, TRAILER_TAG)
     norx_output_tag(state, c[mlen:])
     *clen = mlen + BYTES_TAG
     burn64(state.s[:], WORDS_STATE)
@@ -318,9 +318,9 @@ func AEAD_encrypt(
 
 func AEAD_decrypt(
     m []uint8, mlen *uint64,
-    h []uint8, hlen uint64,
+    a []uint8, alen uint64,
     c []uint8, clen uint64,
-    t []uint8, tlen uint64,
+    z []uint8, zlen uint64,
     nonce []uint8,
     key []uint8) int {
 
@@ -331,9 +331,9 @@ func AEAD_decrypt(
     var tag [BYTES_TAG]uint8
     var state = new(norx_state_t)
     norx_init(state, key, nonce)
-    norx_absorb_data(state, h, hlen, HEADER_TAG)
+    norx_absorb_data(state, a, alen, HEADER_TAG)
     norx_decrypt_data(state, m, c, clen - BYTES_TAG)
-    norx_absorb_data(state, t, tlen, TRAILER_TAG)
+    norx_absorb_data(state, z, zlen, TRAILER_TAG)
     norx_output_tag(state, tag[:])
     *mlen = clen - BYTES_TAG
     result = norx_verify_tag(c[clen - BYTES_TAG:], tag[:])

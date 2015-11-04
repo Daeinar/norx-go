@@ -4,8 +4,8 @@
 
     This file is part of the Go reference implementation of NORX.
 
-    :copyright: (c) 2014, 2015 Philipp Jovanovic <philipp@jovanovic.io>
     :version: v2.0
+    :copyright: (c) 2014, 2015 Philipp Jovanovic <philipp@jovanovic.io>
     :license: CC0, see LICENSE
 */
 

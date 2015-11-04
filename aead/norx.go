@@ -18,9 +18,9 @@ const (
     NORX_T      = NORX_W * 4                        // tag size
     WORDS_RATE  = 12                                // number of words in the rate
     WORDS_STATE = 16                                // ... in the state
-    BYTES_WORD  = NORX_W / 8                        // byte size of a word
-    BYTES_RATE  = WORDS_RATE * BYTES_WORD           // ... of the rate
-    BYTES_TAG   = NORX_T / 8                        // ... of the tag
+    BYTES_WORD  = NORX_W / 8                        // number of bytes in a word
+    BYTES_RATE  = WORDS_RATE * BYTES_WORD           // ... in the rate
+    BYTES_TAG   = NORX_T / 8                        // ... in the tag
     HEADER_TAG  = 0x01                              // domain separation constant for header
     PAYLOAD_TAG = 0x02                              // ... for payload
     TRAILER_TAG = 0x04                              // ... for trailer

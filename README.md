@@ -1,10 +1,10 @@
 # NORX source code package (Go)
 
 ## Warning
-NORX is still a rather new authenticated encryption algorithm. The authors are confident that it is secure but nevertheless NORX **still lacks extensive analysis**. Therefore, **do not use** it in your applications!
+[NORX](https://norx.io) is still a rather new authenticated encryption algorithm. The authors are confident that it is secure but nevertheless NORX **still lacks extensive analysis**. Therefore, **do not use** it in your applications!
 
 ## About
-This repository provides a Go implementation of [NORX6441](https://norx.io) v2.0. The NORX AEAD algorithm family was designed by
+This repository provides a Go implementation of NORX6441 v2.0. The NORX AEAD algorithm family was designed by
 
   * [Jean-Philippe Aumasson](https://aumasson.jp)
   * [Philipp Jovanovic](https://zerobyte.io)

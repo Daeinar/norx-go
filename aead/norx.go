@@ -5,6 +5,7 @@
     This file is part of the Go reference implementation of NORX.
 
     :copyright: (c) 2014, 2015 Philipp Jovanovic <philipp@jovanovic.io>
+    :version: v2.0
     :license: CC0, see LICENSE
 */
 
@@ -18,9 +19,9 @@ const (
     NORX_T      = NORX_W * 4               // tag size
     WORDS_RATE  = 12                       // number of words in the rate
     WORDS_STATE = 16                       // ... in the state
-    BYTES_WORD  = NORX_W / 8               // number of bytes in a word
+    BYTES_WORD  = (NORX_W + 7) / 8         // number of bytes in a word
     BYTES_RATE  = WORDS_RATE * BYTES_WORD  // ... in the rate
-    BYTES_TAG   = NORX_T / 8               // ... in the tag
+    BYTES_TAG   = (NORX_T + 7) / 8         // ... in the tag
     HEADER_TAG  = 0x01                     // domain separation constant for header
     PAYLOAD_TAG = 0x02                     // ... for payload
     TRAILER_TAG = 0x04                     // ... for trailer
@@ -69,7 +70,7 @@ func burn64(x []uint64, xlen uint64) {
 }
 
 func rotr(x,c uint64) uint64 {
-    return (x >> c | x << (NORX_W - c))
+    return ((x >> c) | (x << (NORX_W - c)))
 }
 
 func h(x,y uint64) uint64 {

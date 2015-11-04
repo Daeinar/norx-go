@@ -17,7 +17,6 @@ import utils "github.com/daeinar/norx-go/utils"
 
 func main() {
 
-
     args := os.Args
 
     if len(args) != 2 {
@@ -27,6 +26,8 @@ func main() {
             utils.Check()
         } else if args[1] == "genkat" {
             utils.Genkat()
+        } else if args[1] == "debug" {
+            utils.Debug()
         } else {
             fmt.Println("Error: Unknown parameter.")
         }

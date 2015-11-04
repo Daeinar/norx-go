@@ -8,6 +8,7 @@
     :license: BSD (3-Clause), see LICENSE
 */
 
+
 package aead
 
 const (
@@ -15,7 +16,7 @@ const (
     NORX_L      = 4                                 // number of rounds
     NORX_P      = 1                                 // parallelism degree
     NORX_T      = NORX_W * 4                        // tag size
-    WORDS_RATE  = 10                                // number of words in the rate
+    WORDS_RATE  = 12                                // number of words in the rate
     WORDS_STATE = 16                                // ... in the state
     BYTES_WORD  = NORX_W / 8                        // byte size of a word
     BYTES_RATE  = WORDS_RATE * BYTES_WORD           // ... of the rate
@@ -27,11 +28,6 @@ const (
     BRANCH_TAG  = 0x10                              // ... for branching
     MERGE_TAG   = 0x20                              // ... for merging
     R0, R1, R2, R3 = 8, 19, 40, 63                  // rotation offsets
-    U0, U1 = 0x243F6A8885A308D3, 0x13198A2E03707344 // initialisation constants
-    U2, U3 = 0xA4093822299F31D0, 0x082EFA98EC4E6C89 // ...
-    U4, U5 = 0xAE8858DC339325A1, 0x670A134EE52D7FA6 // ...
-    U6, U7 = 0xC4316D80CD967541, 0xD21DFBF8B630B762 // ...
-    U8, U9 = 0x375A18D261E7F892, 0x343D1F187D92285B // ...
 )
 
 type norx_state_t struct {
@@ -119,47 +115,25 @@ func norx_init(state *norx_state_t, k []uint8, n []uint8) {
 
     var s = state.s[:]
 
-    /*
     for i := uint64(0); i < 16; i++ {
         s[i] = i
     }
 
-    norx_permute(state)
-    norx_permute(state)
+    f(s)
+    f(s)
 
-    s[ 0] = load64(n[ 0: 8])
-    s[ 1] = load64(n[ 8:16])
+    state.s[ 0] = load64(n[ 0: 8])
+    state.s[ 1] = load64(n[ 8:16])
 
-    s[ 4] = load64(k[ 0: 8])
-    s[ 5] = load64(k[ 8:16])
-    s[ 6] = load64(k[16:24])
-    s[ 7] = load64(k[24:32])
-    */
+    state.s[ 4] = load64(k[ 0: 8])
+    state.s[ 5] = load64(k[ 8:16])
+    state.s[ 6] = load64(k[16:24])
+    state.s[ 7] = load64(k[24:32])
 
-    s[ 0] = U0
-    s[ 1] = load64(n[ 0: 8])
-    s[ 2] = load64(n[ 8:16])
-    s[ 3] = U1
-
-    s[ 4] = load64(k[ 0: 8])
-    s[ 5] = load64(k[ 8:16])
-    s[ 6] = load64(k[16:24])
-    s[ 7] = load64(k[24:32])
-
-    s[ 8] = U2
-    s[ 9] = U3
-    s[10] = U4
-    s[11] = U5
-
-    s[12] = U6
-    s[13] = U7
-    s[14] = U8
-    s[15] = U9
-
-    s[12] ^= NORX_W
-    s[13] ^= NORX_L
-    s[14] ^= NORX_P
-    s[15] ^= NORX_T
+    state.s[12] ^= NORX_W
+    state.s[13] ^= NORX_L
+    state.s[14] ^= NORX_P
+    state.s[15] ^= NORX_T
 
     norx_permute(state)
 }

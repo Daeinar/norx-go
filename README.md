@@ -1,25 +1,25 @@
-### Go Implementation of NORX
+# NORX source code package (Go)
 
-[NORX](https://norx.io) is a parallel and scalable authenticated encryption algorithm and was designed by:
+## Warning
+NORX is still a rather new authenticated encryption algorithm. The authors are confident that it is secure but nevertheless NORX **still lacks extensive analysis**. Therefore, **do not use** it in your applications!
 
-  * [Jean-Philippe Aumasson](http://aumasson.jp)
-  * [Philipp Jovanovic](http://cryptomaths.com)
+## About
+This repository provides a Go implementation of [NORX6441](https://norx.io) v2.0. The NORX AEAD algorithm family was designed by
+
+  * [Jean-Philippe Aumasson](https://aumasson.jp)
+  * [Philipp Jovanovic](https://zerobyte.io)
   * [Samuel Neves](http://eden.dei.uc.pt/~sneves/)
 
-This implementation currently supports only NORX64 in sequential mode.
-
-
-
-####Installation
+## Installation & Usage
+To check out the source code execute:
 ```
 go get https://github.com/Daeinar/norx-go
 ```
 
-####Usage
-The following command installs norx-go and runs the test vectors from `main.go`:
+To install NORX and run the test vectors execute:
 ```
 go install && norx-go check
 ```
 
-####License
-This software package is released under the BSD (3-Clause) license. See the file `LICENSE` for more details.
+## License
+The NORX source code is released under the [CC0 license](https://creativecommons.org/publicdomain/zero/1.0/). The full license text is included in the file `LICENSE`.

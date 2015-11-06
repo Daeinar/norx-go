@@ -8,9 +8,9 @@
     :copyright: (c) 2014, 2015 Philipp Jovanovic <philipp@jovanovic.io>
     :license: CC0, see LICENSE
 */
-
-
 package aead
+
+import "encoding/binary"
 
 const (
     NORX_W      = 64                       // wordsize
@@ -36,25 +36,11 @@ type norx_state_t struct {
 }
 
 func load64(in []uint8) uint64 {
-    return (uint64(in[0]) <<  0) |
-           (uint64(in[1]) <<  8) |
-           (uint64(in[2]) << 16) |
-           (uint64(in[3]) << 24) |
-           (uint64(in[4]) << 32) |
-           (uint64(in[5]) << 40) |
-           (uint64(in[6]) << 48) |
-           (uint64(in[7]) << 56)
+    return binary.LittleEndian.Uint64(in)
 }
 
 func store64(out []uint8, in uint64) {
-    out[0] = uint8(in >>  0)
-    out[1] = uint8(in >>  8)
-    out[2] = uint8(in >> 16)
-    out[3] = uint8(in >> 24)
-    out[4] = uint8(in >> 32)
-    out[5] = uint8(in >> 40)
-    out[6] = uint8(in >> 48)
-    out[7] = uint8(in >> 56)
+    binary.LittleEndian.PutUint64(out, in)
 }
 
 func burn8(x []uint8, xlen uint64) {
@@ -78,7 +64,6 @@ func h(x,y uint64) uint64 {
 }
 
 func g(a,b,c,d uint64) (uint64,uint64,uint64,uint64) {
-
     a = h(a,b)
     d = rotr(a ^ d, R0)
     c = h(c,d)
@@ -91,7 +76,6 @@ func g(a,b,c,d uint64) (uint64,uint64,uint64,uint64) {
 }
 
 func f(s []uint64) {
-
     // Column step
     s[ 0], s[ 4], s[ 8], s[12] = g(s[ 0], s[ 4], s[ 8], s[12])
     s[ 1], s[ 5], s[ 9], s[13] = g(s[ 1], s[ 5], s[ 9], s[13])
@@ -105,17 +89,15 @@ func f(s []uint64) {
 }
 
 func norx_permute(state *norx_state_t) {
-
     var s = state.s[:]
     for i := uint64(0); i < NORX_L; i++ {
         f(s)
     }
 }
 
-func norx_init(state *norx_state_t, k []uint8, n []uint8) {
+func norx_init(state *norx_state_t, key []uint8, nonce []uint8) {
 
     var s = state.s[:]
-
     for i := uint64(0); i < WORDS_STATE; i++ {
         s[i] = i
     }
@@ -123,13 +105,13 @@ func norx_init(state *norx_state_t, k []uint8, n []uint8) {
     f(s)
     f(s)
 
-    s[ 0] = load64(n[ 0: 8])
-    s[ 1] = load64(n[ 8:16])
+    s[ 0] = load64(nonce[ 0: 8])
+    s[ 1] = load64(nonce[ 8:16])
 
-    s[ 4] = load64(k[ 0: 8])
-    s[ 5] = load64(k[ 8:16])
-    s[ 6] = load64(k[16:24])
-    s[ 7] = load64(k[24:32])
+    s[ 4] = load64(key[ 0: 8])
+    s[ 5] = load64(key[ 8:16])
+    s[ 6] = load64(key[16:24])
+    s[ 7] = load64(key[24:32])
 
     s[12] ^= NORX_W
     s[13] ^= NORX_L
@@ -344,4 +326,3 @@ func AEAD_decrypt(
     burn64(state.s[:], WORDS_STATE)
     return result
 }
-
